@@ -1,0 +1,35 @@
+{
+ "schema": "verified-examples/v0",
+ "attestations": [
+  {
+   "_type": "https://in-toto.io/Statement/v1",
+   "subject": [
+    {
+     "name": "test.sh",
+     "digest": {
+      "sha256": "d148793a323ca53beb2eb5bec664b6259e937d2f1a1fa0922c28f8dcc94bd3e9"
+     }
+    }
+   ],
+   "predicateType": "https://github.com/DrVelvetFog/verified-examples/v0",
+   "predicate": {
+    "id": "tests",
+    "package": "xv",
+    "version": "0.1.0",
+    "command": "bash test.sh",
+    "exit": 0,
+    "stdout": {
+     "sha256": "a2344b8329225e8bade004488788d68c1fb1eebd94c586d45513d333fe97ebb6",
+     "bytes": 726,
+     "tail": "ver VERIFIED\n  ok   run exits 1 when an example fails\n  ok   failed attestation surfaces\n6. example without attestation -> MISSING\n  ok   missing\n7. llms stanza\n  ok   llms.txt stanza\n\npass=14 fail=0\n"
+    },
+    "ran_at": "2026-09-10T11:39:50Z",
+    "runner": {
+     "os": "darwin",
+     "python": "3.14.6",
+     "ci": false
+    }
+   }
+  }
+ ]
+}

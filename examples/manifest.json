@@ -1,0 +1,4 @@
+{"package": "xv", "version_cmd": "cat VERSION",
+ "examples": [
+  {"id": "tests", "path": "test.sh", "command": "bash test.sh"}
+ ]}

@@ -1,0 +1,14 @@
+# Dogfood: this repo's own test suite is its attested example. The action under
+# test is the working tree (`uses: ./`), so every push verifies the current code.
+name: verified-examples
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./
+        with:
+          checkout: "false"
