@@ -1,0 +1,68 @@
+name: Verified Examples
+description: "Check attested doc examples in CI: VERIFIED, MODIFIED, STALE, FAILED or MISSING per example, as in-toto Statements."
+author: Tony Jagodka
+branding:
+  icon: book-open
+  color: blue
+
+inputs:
+  command:
+    description: "check (consumer: verify committed attestations) or run (producer: execute examples and write attestations)"
+    default: check
+  manifest:
+    description: "Path to the examples manifest"
+    default: examples/manifest.json
+  attestations:
+    description: "Path to the attestation file (read by check, written by run)"
+    default: examples/attest.json
+  rerun:
+    description: "check only: re-execute each example and compare exit code and output digest against the attestation"
+    default: "true"
+  strict:
+    description: "Fail the step when any example is not VERIFIED (check) or exits non-zero (run)"
+    default: "true"
+  checkout:
+    description: "Check the repository out inside the action. Set false if you already did."
+    default: "true"
+  working-directory:
+    description: "Directory holding the manifest, examples and attestations"
+    default: "."
+
+outputs:
+  verified:
+    description: "true when every example is VERIFIED (check) or exited 0 (run), regardless of strict"
+    value: ${{ steps.xv.outputs.verified }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      if: ${{ inputs.checkout == 'true' }}
+      uses: actions/checkout@v7
+
+    - name: xv
+      id: xv
+      shell: bash
+      env:
+        XV_COMMAND: ${{ inputs.command }}
+        XV_MANIFEST: ${{ inputs.manifest }}
+        XV_ATTEST: ${{ inputs.attestations }}
+        XV_RERUN: ${{ inputs.rerun }}
+        XV_STRICT: ${{ inputs.strict }}
+        XV_DIR: ${{ inputs.working-directory }}
+      run: |
+        set -uo pipefail
+        cd "$XV_DIR"
+        case "$XV_COMMAND" in check|run) ;; *) echo "::error::command must be check or run, got '$XV_COMMAND'"; exit 1;; esac
+        cmd=(python3 "$GITHUB_ACTION_PATH/xv" "$XV_COMMAND" -m "$XV_MANIFEST" -a "$XV_ATTEST")
+        if [ "$XV_COMMAND" = check ]; then
+          [ "$XV_RERUN" = true ] && cmd+=(--rerun)
+          cmd+=(--strict)   # real verdict in the exit code; the strict input decides step failure below
+        fi
+        out=$("${cmd[@]}" 2>&1); rc=$?
+        printf '%s\n' "$out"
+        { echo '### Verified examples'; echo '```'; printf '%s\n' "$out"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+        verified=false; [ $rc -eq 0 ] && verified=true
+        echo "verified=$verified" >> "$GITHUB_OUTPUT"
+        [ "$XV_STRICT" != true ] && exit 0
+        exit $rc
